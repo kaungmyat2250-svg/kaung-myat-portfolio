@@ -204,36 +204,34 @@
     .delay-2 { transition-delay: 160ms; }
     .delay-3 { transition-delay: 240ms; }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --paper: #181818;
-        --paper-deep: #272727;
-        --ink: #f4eee3;
-        --muted: #b7b0a5;
-        --orange: #ed6b2d;
-        --orange-dark: #c94e17;
-        --mint: #355148;
-        --blue: #30474f;
-        --yellow: #f3c761;
-        --white: #242424;
-        --line: rgba(244, 238, 227, .18);
-        --shadow: 8px 8px 0 rgba(0, 0, 0, .28);
-        color-scheme: dark;
-      }
-      .nav { background: rgba(36, 36, 36, .88); border-color: var(--line); box-shadow: 0 10px 24px rgba(0, 0, 0, .24); }
-      .about { background: #101010; color: var(--ink); }
-      .tagline { background: #b74810; }
-      .work { background: var(--paper-deep); }
-      .project-card.featured { background: var(--blue); }
-      .project-card.small { background: var(--mint); }
-      .project-card p { color: #d5e1e3; }
-      .project-card.small p { color: #d5e3db; }
-      .learning { background: var(--paper); }
-      .learning-card:nth-child(2) { background: var(--white); }
-      .contact { background: var(--paper); }
-      .contact-box { background: #101010; color: var(--ink); }
-      .contact-box .eyebrow { color: var(--yellow); }
+    :root[data-theme="dark"] {
+      --paper: #181818;
+      --paper-deep: #272727;
+      --ink: #f4eee3;
+      --muted: #b7b0a5;
+      --orange: #ed6b2d;
+      --orange-dark: #c94e17;
+      --mint: #355148;
+      --blue: #30474f;
+      --yellow: #f3c761;
+      --white: #242424;
+      --line: rgba(244, 238, 227, .18);
+      --shadow: 8px 8px 0 rgba(0, 0, 0, .28);
+      color-scheme: dark;
     }
+    :root[data-theme="dark"] .nav { background: rgba(36, 36, 36, .88); border-color: var(--line); box-shadow: 0 10px 24px rgba(0, 0, 0, .24); }
+    :root[data-theme="dark"] .about { background: #101010; color: var(--ink); }
+    :root[data-theme="dark"] .tagline { background: #b74810; }
+    :root[data-theme="dark"] .work { background: var(--paper-deep); }
+    :root[data-theme="dark"] .project-card.featured { background: var(--blue); }
+    :root[data-theme="dark"] .project-card.small { background: var(--mint); }
+    :root[data-theme="dark"] .project-card p { color: #d5e1e3; }
+    :root[data-theme="dark"] .project-card.small p { color: #d5e3db; }
+    :root[data-theme="dark"] .learning { background: var(--paper); }
+    :root[data-theme="dark"] .learning-card:nth-child(2) { background: var(--white); }
+    :root[data-theme="dark"] .contact { background: var(--paper); }
+    :root[data-theme="dark"] .contact-box { background: #101010; color: var(--ink); }
+    :root[data-theme="dark"] .contact-box .eyebrow { color: var(--yellow); }
 
     @media (min-width: 821px) {
       .nav-links[hidden] { display: flex !important; }
@@ -270,6 +268,35 @@
       .project-card, .project-card.featured { min-height: 360px; padding: 24px; }
       .project-card h3 { margin-top: 44px; font-size: 42px; }
       .stamp { right: 18px; bottom: 20px; width: 78px; height: 78px; font-size: 10px; }
+    }
+    .theme-switch {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 25;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 8px 12px 8px 16px;
+      color: var(--ink);
+      background: var(--white);
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 4px 4px 0 var(--orange);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), background-color .22s var(--ease);
+    }
+    .theme-switch:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--orange); }
+    .theme-switch:active { transform: translate(0, 0) scale(.98); box-shadow: 2px 2px 0 var(--orange); }
+    .theme-track { display: flex; align-items: center; width: 38px; height: 22px; padding: 2px; background: var(--paper-deep); border: 1px solid var(--ink); border-radius: 999px; }
+    .theme-knob { width: 16px; height: 16px; border-radius: 50%; background: var(--orange); transition: transform .35s var(--ease); }
+    .theme-switch[aria-checked="true"] .theme-knob { transform: translateX(16px); }
+    @media (max-width: 480px) {
+      .theme-switch { right: 16px; bottom: 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -409,7 +436,27 @@
     </section>
   </main>
 
+  <button class="theme-switch" id="theme-switch" type="button" role="switch" aria-checked="false" aria-label="Switch to dark mode">
+    <span class="theme-label">Light mode</span>
+    <span class="theme-track" aria-hidden="true"><span class="theme-knob"></span></span>
+  </button>
+
   <script>
+    const themeSwitch = document.querySelector('#theme-switch');
+    const themeLabel = document.querySelector('.theme-label');
+    let savedTheme = null;
+    try { savedTheme = localStorage.getItem('kaung-theme'); } catch {}
+    const setTheme = theme => {
+      const dark = theme === 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      themeSwitch.setAttribute('aria-checked', String(dark));
+      themeSwitch.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+      themeLabel.textContent = dark ? 'Dark mode' : 'Light mode';
+      try { localStorage.setItem('kaung-theme', dark ? 'dark' : 'light'); } catch {}
+    };
+    setTheme(savedTheme === 'dark' ? 'dark' : 'light');
+    themeSwitch.addEventListener('click', () => setTheme(themeSwitch.getAttribute('aria-checked') === 'true' ? 'light' : 'dark'));
+
     const menuButton = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('#nav-links');
     menuButton.addEventListener('click', () => {
